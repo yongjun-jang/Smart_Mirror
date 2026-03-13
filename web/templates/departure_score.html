@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>외출 성공 점수</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="page-container">
+  <h2>🚀 외출 준비 최종 점검</h2>
+
+  <div class="card" style="text-align:center;">
+    <div style="font-size:64px; font-weight:800; margin:20px 0;">
+      {{ score }}점
+    </div>
+
+    <div style="font-size:18px; opacity:0.9;">
+      {{ comment }}
+    </div>
+
+    <div style="margin-top:10px; font-size:15px; opacity:0.85;">
+      {{ advice }}
+    </div>
+
+    <hr style="margin:30px 0; opacity:0.2;">
+
+    <div style="font-size:14px; text-align:left;">
+      ✔ 교통 성공 확률: {{ best_prob }}점<br>
+      ✔ 컨디션 점수: {{ cond_score }}점<br>
+      ✔ 소지품 준비도: {{ item_score }}점<br>
+      ⚠ 날씨 리스크: -{{ weather_penalty }}점
+    </div>
+  </div>
+
+  <button class="primary-btn" onclick="location.href='/'">
+    외출 완료
+  </button>
+</div>
+
+</body>
+</html>

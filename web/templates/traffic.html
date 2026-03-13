@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>Smart Mirror - 교통 정보</title>
+    <meta http-equiv="refresh" content="60">
+    <style>
+        /* 기존 스타일 그대로 유지 */
+        body { margin: 20px; font-family: 'Noto Sans KR', sans-serif; background: #000000; color: #ffffff; overflow: hidden; }
+        .top { display: flex; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .title { font-size: 24px; font-weight: 700; color: #4fa3f7; }
+        .grid { display: grid; grid-template-columns: 1.1fr 0.9fr; grid-template-rows: repeat(2, 1fr); grid-template-areas: "prob bus" "prob taxi"; gap: 15px; height: calc(100vh - 180px); margin-bottom: 10px; }
+        #commute-prob-card { grid-area: prob; display: flex; flex-direction: column; }
+        #bus-card { grid-area: bus; }
+        #taxi-card { grid-area: taxi; }
+        .card { background: #111826; border: 1px solid #1f2a3a; border-radius: 20px; padding: 20px; position: relative; display: flex; flex-direction: column; }
+        .card-title { font-size: 15px; opacity: 0.8; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+        .big { font-size: 48px; font-weight: 800; color: #ffffff; margin: 10px 0; }
+        .sub { opacity: 0.7; font-size: 14px; margin-top: 5px; }
+        .stop-name, .dest-name { font-size: 18px; font-weight: 700; color: #4fa3f7; margin-bottom: 5px; }
+        .list { margin-top: 15px; }
+        .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #2a3b57; font-size: 15px; }
+        .bus-no { color: #4fa3f7; font-weight: 700; }
+        .search-container { position: relative; width: 100%; margin-top: 5px; }
+        .time-input, .dest-input { padding: 12px; border-radius: 10px; border: 1px solid #2a3b57; background: #172235; color: #ffffff; width: 100%; box-sizing: border-box; font-size: 16px; margin-bottom: 5px; }
+        .place-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #1f2a3a; border: 1px solid #4fa3f7; border-radius: 10px; z-index: 1000; display: none; max-height: 200px; overflow-y: auto; }
+        .dropdown-item { padding: 12px; border-bottom: 1px solid #2a3b57; cursor: pointer; }
+        .item-name { font-weight: bold; font-size: 15px; }
+        .item-address { font-size: 12px; opacity: 0.6; }
+        .btn { padding: 15px; border-radius: 12px; border: 1px solid #2a3b57; background: #172235; color: #ffffff; font-weight: 700; cursor: pointer; width: 100%; font-size: 18px; transition: 0.2s; }
+        .btn:active { background: #2a3b57; transform: scale(0.98); }
+        .btn-next { background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); border: none; margin-top: 10px; }
+        .prob-result { flex-grow: 1; margin-top: 15px; padding: 15px; background: #1a2432; border-radius: 12px; font-size: 16px; line-height: 1.6; min-height: 80px; overflow-y: auto; }
+    </style>
+    <script defer src="/static/app.js"></script>
+</head>
+<body>
+    <div class="top">
+        <div class="title">🚦 교통 브리핑 · {{ now }}</div>
+    </div>
+
+    <div class="grid">
+        <div class="card" id="commute-prob-card">
+    <div class="card-title">📉 정시 도착 확률 계산</div>
+    <div style="display: flex; flex-direction: column; gap: 15px;">
+        <input id="arriveTime" type="time" value="09:00" class="time-input" />
+        
+        <div class="search-container" id="destSearchContainer2">
+            <input id="destInput2" 
+                   class="dest-input" 
+                   placeholder="목적지 입력" 
+                   oninput="onDestinationInput2()" 
+                   autocomplete="off" />
+            
+            <div id="placeDropdown2" class="place-dropdown"></div>
+        </div>
+    </div>
+
+    <button class="btn" style="margin-top:10px;" onclick="confirmDestination2()">
+        목적지 선택 완료
+    </button>
+
+    <input type="hidden" id="destLat2" name="dest_lat">
+    <input type="hidden" id="destLon2" name="dest_lon">
+    <input type="hidden" id="destName2" name="dest_name">
+    
+
+    <button class="btn" style="margin-top:10px;" onclick="calcCommuteProb()">
+        확률 확인
+    </button>
+    <div id="probResult" class="prob-result">목적지를 입력한 후 <b>확률 확인</b> 버튼을 눌러주세요.</div>
+</div>
+
+        <div class="card" id="bus-card">
+            <div class="card-title">🚌 내 주변 버스 정류장</div>
+            <div class="stop-name">{{ stop.nodeNm if stop else "근처 정류장 없음" }}</div>
+            <div class="big">{{ eta_min if eta_min is not none else "--" }}<span style="font-size: 20px;">분</span></div>
+            <div class="list">
+                {% for a in arrivals_preview %}
+                <div class="row">
+                    <span><b class="bus-no">{{ a.routeNo }}</b> → {{ a.endNodeNm if a.endNodeNm else "방면" }}</span>
+                    <span>{{ a.arrTimeMin }}분</span>
+                </div>
+                {% else %}
+                <div class="sub">운행 중인 버스가 없습니다.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card" id="taxi-card">
+            <div class="card-title">🚕 택시 이동 예상</div>
+            <div class="dest-name">{{ dest_name }}</div>
+            {% if taxi.ok %}
+            <div class="big">{{ taxi.duration_min }}<span style="font-size: 20px;">분</span></div>
+            <div class="sub">💰 예상 요금: {{ "{:,}".format(taxi.taxi_fare) }}원</div>
+            <div class="sub">📍 이동 거리: {{ (taxi.distance_meter / 1000)|round(1) }}km</div>
+            {% else %}
+            <div class="big">--</div>
+            <div class="sub">택시 데이터를 불러올 수 없습니다.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <button class="btn btn-next" onclick="location.href='/todo'">
+        교통 확인 완료 & 오늘 일정 보기 ➔
+    </button>
+
+    <script>
+    window.serverData = {
+        taxi: {{ taxi|tojson if taxi else 'null' }},
+        weather: {{ weather|tojson if weather else 'null' }}
+    };
+    </script>
+
+
+
+    </body>
+    </html>

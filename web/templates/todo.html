@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>Smart Mirror - 오늘의 할 일</title>
+    <style>
+        body { margin: 20px; font-family: 'Noto Sans KR', sans-serif; background: #000000; color: #ffffff; }
+        .top { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .title { font-size: 24px; font-weight: 700; color: #4fa3f7; }
+        
+        .todo-list { display: flex; flex-direction: column; gap: 15px; }
+        .todo-item { 
+            background: #111826; border: 1px solid #1f2a3a; border-radius: 15px; 
+            padding: 20px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .todo-info { display: flex; flex-direction: column; }
+        .todo-title { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+        .todo-time { font-size: 14px; opacity: 0.6; }
+        
+        .complete-btn { 
+            background: #1e3a5f; color: white; border: 1px solid #4fa3f7; 
+            padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer;
+        }
+        .complete-btn.done { background: #065f46; border-color: #10b981; opacity: 0.5; }
+        
+        .btn-back { 
+            margin-top: 30px; background: #333; color: white; border: none; 
+            padding: 15px; width: 100%; border-radius: 12px; font-size: 18px; 
+        }
+    </style>
+</head>
+<body>
+    <div class="top">
+        <div class="title">📅 오늘의 할 일 · {{ today }}</div>
+    </div>
+
+    <div class="todo-list">
+        {% for e in events %}
+        <div class="todo-item" id="item-{{ loop.index }}">
+            <div class="todo-info">
+                <span class="todo-title">{{ e.title }}</span>
+                <span class="todo-time">⏰ {{ e.start.strftime('%H:%M') }} - {{ e.end.strftime('%H:%M') }}</span>
+            </div>
+            <button class="complete-btn" onclick="markComplete('{{ loop.index }}')">체크</button>
+        </div>
+        {% else %}
+        <div style="text-align: center; opacity: 0.5; margin-top: 50px;">오늘 예정된 일정이 없습니다.</div>
+        {% endfor %}
+    </div>
+
+    <button class="btn" onclick="location.href='/weather'">
+        일정 확인 완료 & 날씨 브리핑 보기 ➔
+    </button>
+
+    <script>
+        async function markComplete(index) {
+            const btn = document.querySelector(`#item-${index} .complete-btn`);
+            btn.innerText = "완료됨";
+            btn.classList.add("done");
+            btn.disabled = true;
+            
+            // API 호출 (기록용)
+            await fetch('/api/todo/complete', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ index: index })
+            });
+        }
+    </script>
+</body>
+</html>

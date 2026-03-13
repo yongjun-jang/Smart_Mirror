@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>Smart Mirror - 최종 브리핑</title>
+    <style>
+        /* 교통 정보 페이지의 스타일 가이드를 준수합니다 */
+        body { margin: 20px; font-family: 'Noto Sans KR', sans-serif; background: #000000; color: #ffffff; overflow: hidden; }
+        .top { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .title { font-size: 26px; font-weight: 700; color: #ffd700; } /* 금색으로 포인트 */
+        
+        .container { display: flex; flex-direction: column; gap: 20px; height: calc(100vh - 120px); }
+        
+        /* LLM 핵심 요약 카드 (가장 크게 강조) */
+        .summary-card { 
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); 
+            border: 2px solid #ffd700; 
+            border-radius: 25px; 
+            padding: 30px; 
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+        .summary-label { font-size: 16px; color: #ffd700; opacity: 0.9; margin-bottom: 15px; font-weight: bold; }
+        .summary-text { font-size: 32px; font-weight: 800; line-height: 1.4; color: #ffffff; word-break: keep-all; }
+
+        /* 세부 실행 포인트 카드 */
+        .points-card { 
+            background: #111826; 
+            border: 1px solid #1f2a3a; 
+            border-radius: 20px; 
+            padding: 25px; 
+            flex-grow: 1; 
+        }
+        .points-title { font-size: 18px; color: #4fa3f7; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .point-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            padding: 12px 0; 
+            border-bottom: 1px dashed #2a3b57; 
+            font-size: 18px; 
+        }
+        .check-icon { color: #4fa3f7; font-weight: bold; }
+
+        /* 하단 버튼 구역 */
+        .footer { margin-top: auto; }
+        .btn-finish { 
+            background: linear-gradient(135deg, #ffd700 0%, #b8860b 100%); 
+            border: none; 
+            padding: 20px; 
+            border-radius: 15px; 
+            color: #000; 
+            font-weight: 900; 
+            font-size: 22px; 
+            width: 100%; 
+            cursor: pointer; 
+            transition: 0.3s;
+        }
+        .btn-finish:active { transform: scale(0.97); opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="top">
+        <div class="title">✨ 오늘의 최종 외출 전략</div>
+    </div>
+
+    <div class="container">
+        <div class="summary-card">
+            <div class="summary-label">AI 비서의 한 줄 조언</div>
+            <div class="summary-text">
+                "{{ summary }}"
+            </div>
+        </div>
+
+        <div class="points-card">
+            <div class="points-title">📍 필수 체크포인트</div>
+            <div class="list">
+                {% for point in action_points %}
+                <div class="point-item">
+                    <span class="check-icon">✓</span>
+                    <span>{{ point }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="footer">
+            <button class="btn-finish" onclick="location.href='/'">
+                확인 완료 · 도어락 해제 ➔
+            </button>
+        </div>
+    </div>
+</body>
+</html>

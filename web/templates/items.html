@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>Smart Mirror - 소지품 등록</title>
+  <style>
+    body { 
+      margin: 20px; 
+      font-family: 'Noto Sans KR', sans-serif; 
+      background: #000000; 
+      color: #ffffff; 
+    }
+    .top { 
+      display: flex; 
+      align-items: center; 
+      margin-bottom: 20px; 
+      border-bottom: 1px solid #333; 
+      padding-bottom: 10px; 
+    }
+    .title { font-size: 24px; font-weight: 700; color: #4fa3f7; }
+    
+    /* 입력창 디자인 */
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    input {
+      flex: 1;
+      padding: 15px;
+      border-radius: 12px;
+      border: 1px solid #1f2a3a;
+      background: #111826;
+      color: #fff;
+      font-size: 18px;
+    }
+    .btn-add {
+      padding: 0 25px;
+      border-radius: 12px;
+      border: none;
+      background: #4fa3f7;
+      color: #000;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* 리스트 디자인 */
+    .list-container {
+      background: #111826;
+      border-radius: 20px;
+      border: 1px solid #1f2a3a;
+      padding: 10px;
+    }
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      border-bottom: 1px solid #1f2a3a;
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-name { font-size: 20px; font-weight: 600; }
+    .item-miss { color: #ff4a4a; font-size: 16px; font-weight: bold; }
+
+    /* 하단 버튼 */
+    .nav-buttons { margin-top: 30px; }
+    .btn-nav {
+      display: block;
+      text-align: center;
+      padding: 18px;
+      border-radius: 15px;
+      background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="title">➕ 소지품 등록/관리</div>
+  </div>
+
+  <div class="input-group">
+    <input id="name" placeholder="예: 자동차 키, 사원증...">
+    <button class="btn-add" onclick="add()">등록</button>
+  </div>
+
+  <div class="list-container">
+    {% for i in items %}
+      <div class="item-row">
+        <span class="item-name">{{ i.name }}</span>
+        <span class="item-miss">분실/미소지 {{ i.miss }}회</span>
+      </div>
+    {% endfor %}
+    {% if not items %}
+      <div style="padding: 40px; text-align: center; opacity: 0.5;">등록된 소지품이 없습니다.</div>
+    {% endif %}
+  </div>
+
+  <div class="nav-buttons">
+    <a href="/checklist" class="btn-nav">체크리스트 시작하기 ➔</a>
+  </div>
+
+<script>
+async function add(){
+  const nameInput = document.getElementById("name");
+  const name = nameInput.value.trim();
+  if(!name) return;
+
+  await fetch("/api/items/add", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({name})
+  });
+  location.reload();
+}
+</script>
+</body>
+</html>

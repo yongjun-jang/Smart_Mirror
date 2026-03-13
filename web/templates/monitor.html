@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mirror Monitor</title>
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        body { margin: 0; padding: 20px; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
+        .container { display: flex; flex-direction: column; height: 100vh; justify-content: space-around; }
+        .item { border-left: 5px solid #4fa3f7; padding-left: 15px; margin-bottom: 30px; }
+        .label { font-size: 1.2rem; opacity: 0.6; margin-bottom: 5px; }
+        .value { font-size: 3rem; font-weight: 800; color: #fff; }
+        .highlight { color: #4fa3f7; }
+        .time { position: absolute; top: 20px; right: 20px; font-size: 1.5rem; font-weight: bold; color: #4fa3f7; }
+        .footer { font-size: 0.9rem; opacity: 0.4; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="time" id="clock">--:--</div>
+    <div class="container">
+        <div class="item">
+            <div class="label">🚕 택시 도착 예상</div>
+            <div class="value" id="taxi-time">--분</div>
+        </div>
+        <div class="item">
+            <div class="label">📅 다음 할 일</div>
+            <div class="value" id="next-todo" style="font-size: 2rem;">로딩 중...</div>
+        </div>
+        <div class="item">
+            <div class="label">👤 현재 상태</div>
+            <div class="value highlight" id="condition">--</div>
+        </div>
+        <div class="footer">Smart Mirror Data Stream active</div>
+    </div>
+
+    <script>
+        async function updateMonitor() {
+            try {
+                const res = await fetch('/api/monitor/summary');
+                const data = await res.json();
+                if (data.ok) {
+                    document.getElementById('clock').innerText = data.time;
+                    document.getElementById('taxi-time').innerText = data.taxi;
+                    document.getElementById('next-todo').innerText = data.todo;
+                    document.getElementById('condition').innerText = data.condition;
+                }
+            } catch (e) { console.error("Update failed", e); }
+        }
+        // 30초마다 데이터 갱신
+        setInterval(updateMonitor, 30000);
+        updateMonitor();
+    </script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Smart Mirror</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script>
+    const uiPhase = "{{ ui_phase }}";
+    if (uiPhase !== "active") {
+        setTimeout(function() {
+            location.reload();
+        }, 2000);
+    }
+  </script>
+</head>
+<body>
+  <style>
+    body { background-color: black !important; margin: 0; overflow: hidden; font-family: 'Pretendard', sans-serif; color: white; }
+    .welcome-text { font-size: 38px; font-weight: 800; margin-bottom: 10px; animation: fadeIn 1s ease-in; }
+    
+    /* [수정] 결과 컨테이너 폭을 줄이고 중앙 집중도를 높임 */
+    .result-container { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 30px; 
+      width: 100%; 
+      max-width: 700px; /* 폭을 900px에서 700px로 축소 */
+      animation: fadeIn 0.8s ease-out; 
+    }
+    
+    .rect-card { 
+      background: rgba(255, 255, 255, 0.07); 
+      border: 1px solid rgba(255, 255, 255, 0.15); 
+      border-radius: 12px; 
+      padding: 30px; /* 내부 여백 축소 */
+      display: flex; 
+      flex-direction: column; 
+      justify-content: center;
+    }
+    .video-box { 
+      border: 2px solid #444; 
+      border-radius: 10px; 
+      overflow: hidden; 
+      background: #111;
+      aspect-ratio: 16 / 9;
+      width: 750px;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+
+  <div class="top" style="padding: 20px; border-bottom: 1px solid #333;">
+    <div class="title" style="color: #888;">Smart Mirror · {{ now }}</div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100vh; padding-top: 25px;">
+    
+    <div style="text-align: center; margin-bottom: 50px;">
+      {% if ui_phase == "idle" %}
+        <div class="welcome-text">사용자를 인식 중입니다...</div>
+        <div style="font-size: 16px; color: #aaa;">카메라 정면을 응시해 주세요.</div>
+      {% elif ui_phase == "welcome" %}
+        <div class="welcome-text">{{ cond.user_id }}님, 반갑습니다!</div>
+        <div style="font-size: 18px; color: #3498db; font-weight: bold; animation: pulse 1s infinite;">⚡ 정밀 컨디션 측정 중 (10초)</div>
+      {% else %}
+        <div class="welcome-text">{{ cond.user_id }}님의 분석 결과 리포트</div>
+        <div style="font-size: 16px; color: #2ed573;">✔ 측정이 완료되어 리포트가 생성되었습니다.</div>
+      {% endif %}
+    </div>
+
+    {% if ui_phase != "active" %}
+      <div class="video-box">
+        <img src="{{ url_for('video_feed') }}" style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);">
+      </div>
+    {% else %}
+      <div class="result-container">
+        <div class="rect-card" style="border-left: 8px solid {{ '#ff4757' if cond.state == 'drowsy' else '#2ed573' }};">
+          <div style="font-size: 14px; color: #888; margin-bottom: 10px;">종합 판정</div>
+          <div style="font-size: 48px; font-weight: 900; color: {{ '#ff4757' if cond.state == 'drowsy' else '#2ed573' }}; margin-bottom: 15px;">
+            {{ cond.state.upper() }} <span style="font-size: 28px; font-weight: 700;">({{ policy.label }})</span>
+          </div>
+          <div style="font-size: 18px; color: #eee; line-height: 1.5; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+            {{ policy.message }}
+          </div>
+        </div>
+        
+        <div class="rect-card">
+          <div style="font-size: 14px; color: #888; margin-bottom: 25px;">세부 분석 데이터</div>
+          <div style="display: flex; justify-content: space-around; text-align: center;">
+            <div>
+              <div style="font-size: 15px; color: #aaa; margin-bottom: 10px;">👁️ 깜빡임 빈도</div>
+              <div style="font-size: 36px; font-weight: 800;">{{ cond.blink_per_min|round(1) }} <span style="font-size: 16px;">회/분</span></div>
+            </div>
+            <div style="width: 1px; background: rgba(255,255,255,0.1); height: 70px;"></div>
+            <div>
+              <div style="font-size: 15px; color: #aaa; margin-bottom: 10px;">⏳ 눈 감음 비율</div>
+              <div style="font-size: 36px; font-weight: 800;">{{ (cond.closed_ratio_10s * 100)|round(1) }} <span style="font-size: 16px;">%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <style> @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } } </style>
+</body>
+</html>

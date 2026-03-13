@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>Smart Mirror - 날씨 정보</title>
+    <meta http-equiv="refresh" content="60">
+    <style>
+        /* 스마트 미러 시스템 공통 테마 적용 */
+        body { 
+            margin: 20px; 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background: #000000; /* 완전한 검은색으로 변경 */
+            color: #ffffff; 
+            overflow: hidden; 
+        }
+
+        .top { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 15px; 
+            border-bottom: 1px solid #333; 
+            padding-bottom: 10px; 
+        }
+
+        .title { 
+            font-size: 24px; 
+            font-weight: 700; 
+            color: #4fa3f7; /* 교통 정보와 동일한 포인트 컬러 */
+        }
+
+        /* 메인 날씨 카드 */
+        .card { 
+            background: #111826; 
+            border: 1px solid #1f2a3a; 
+            border-radius: 20px; 
+            padding: 35px; 
+            margin-bottom: 20px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 중앙 정렬로 가독성 향상 */
+            text-align: center;
+        }
+
+        .mid { 
+            font-size: 28px; 
+            font-weight: 700; 
+            color: #4fa3f7; 
+            margin-bottom: 10px;
+        }
+
+        .big { 
+            font-size: 100px; /* 온도 강조 */
+            font-weight: 800; 
+            color: #ffffff; 
+            margin: 10px 0; 
+            letter-spacing: -2px;
+        }
+
+        /* 날씨 특보 알림 */
+        .weather-alert { 
+            width: 100%;
+            margin: 15px 0; 
+            padding: 15px; 
+            border-radius: 12px; 
+            font-weight: 600; 
+            background: rgba(255, 74, 74, 0.1); /* 경고 느낌의 붉은 계열 */
+            border: 1px solid #ff4a4a; 
+            color: #ff4a4a; 
+            box-sizing: border-box;
+        }
+
+        /* 상세 정보 레이아웃 */
+        .weather-details { 
+            display: flex; 
+            justify-content: center;
+            gap: 40px; 
+            margin-top: 25px; 
+            font-size: 18px; 
+            width: 100%;
+        }
+        
+        .detail-item b { color: #4fa3f7; }
+
+        /* 브리핑 섹션 */
+        .weather-briefing { 
+            margin-top: 30px; 
+            padding-top: 20px; 
+            border-top: 1px dashed #2a3b57; 
+            width: 100%;
+            text-align: left;
+        }
+
+        .briefing-point { 
+            font-size: 19px; 
+            color: #e8eef7; 
+            padding: 15px; 
+            margin: 10px 0; 
+            background: #172235; 
+            border-radius: 15px; 
+            border-left: 5px solid #4fa3f7; 
+        }
+
+        /* 하단 버튼 */
+        .btn { 
+            padding: 18px; 
+            border-radius: 15px; 
+            border: none; 
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); 
+            color: #fff; 
+            font-weight: 700; 
+            cursor: pointer; 
+            width: 100%; 
+            font-size: 20px; 
+            transition: 0.2s;
+        }
+        
+        .btn:active { transform: scale(0.98); opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="top">
+        <div class="title">🌤️ 기상 브리핑 · {{ now }}</div>
+    </div>
+
+    <div class="card">
+        <div class="mid">{{ weather.weather_desc if weather.weather_desc else "맑음" }}</div>
+        <div class="big">
+            {% if weather.temp is not none %}{{ weather.temp|round(1) }}°{% else %}--°{% endif %}
+        </div>
+
+        {% if weather.is_rain or weather.is_snow %}
+        <div class="weather-alert">
+            {% if weather.is_snow %}❄️ 현재 눈이 내리고 있습니다. 우산과 미끄럼에 주의하세요!{% else %}🌧️ 현재 비가 내리고 있습니다. 우산을 꼭 챙기세요!{% endif %}
+        </div>
+        {% endif %}
+
+        <div class="weather-details">
+            <div class="detail-item">🌡️ 체감 <b>{{ weather.feels_like|round(1) }}°</b></div>
+            <div class="detail-item">💧 습도 <b>{{ weather.humidity }}%</b></div>
+            <div class="detail-item">☂️ 강수 <b>{{ (precip_prob*100)|round(0) }}%</b></div>
+        </div>
+
+        {% if briefing.action_points %}
+        <div class="weather-briefing">
+            {% for p in briefing.action_points %}
+            <div class="briefing-point">{{ p }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+<button class="btn" onclick="location.href='/checklist'">
+    날씨 확인 완료 & 소지품 챙기기 ➔
+</button>
+
+</body>
+</html>
